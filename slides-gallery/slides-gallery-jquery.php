@@ -509,10 +509,10 @@ function sg_options_page() {
                     
                     <h3><?php _e("Effect Type", 'slides-gallery-jquery'); ?></h3>
                     <select name="sg_effect" id="sg_effect">
-                        <option value="slide,fade" <?php echo (get_option('sg_effect') == 'slide,fade') ? 'selected="selected' : '';  ?>>Slide, Fade</option>
-                        <option value="fade,slide" <?php echo (get_option('sg_effect') == 'fade,slide') ? 'selected="selected' : '';  ?>>Fade, Slide</option>
-                        <option value="fade" <?php echo (get_option('sg_effect') == 'fade') ? 'selected="selected' : '';  ?>>Fade</option>
-                        <option value="slide" <?php echo (get_option('sg_effect') == 'slide') ? 'selected="selected' : '';  ?>>Slide</option>
+                        <option value="slide,fade" <?php echo (get_option('sg_effect') == 'slide,fade') ? 'selected="selected"' : '';  ?>>Slide, Fade</option>
+                        <option value="fade,slide" <?php echo (get_option('sg_effect') == 'fade,slide') ? 'selected="selected"' : '';  ?>>Fade, Slide</option>
+                        <option value="fade" <?php echo (get_option('sg_effect') == 'fade') ? 'selected="selected"' : '';  ?>>Fade</option>
+                        <option value="slide" <?php echo (get_option('sg_effect') == 'slide') ? 'selected="selected"' : '';  ?>>Slide</option>
                     </select>
 					<br />
 					
