@@ -28,10 +28,6 @@ Most of the design, you have to do using CSS. Fortunately there are lots of clas
 = How do I change the image and thumbnail sizes =
 The thumb sizes are editable in the settings. The "Large" size is used for the main image.
 
-== Screenshots ==
-
-1. This shows the default look of the gallery. When you click the "Next" button, the large image slides to the left and the next thumbnail is shown large.
-
 == Changelog ==
 
 * 1.0: First release
