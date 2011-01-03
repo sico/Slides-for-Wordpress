@@ -64,6 +64,11 @@ function remove_brs($string) {
 
 function slides_gallery_jquery($output, $attr) {
     
+    if ( function_exists('plugin_url') )
+		$plugin_url = plugin_url();
+	else
+		$plugin_url = get_option('siteurl') . '/wp-content/plugins/' . plugin_basename(dirname(__FILE__));
+    
     /* load options */
 $sg_preload             = get_option('sg_preload', 'false'); // boolean, Set true to preload images in an image based slideshow		
 $sg_container           = get_option('sg_container', 'slides_container'); // string, Class name for slides container. Default is "slides_container"
@@ -86,6 +91,7 @@ $sg_autoHeight          = get_option('sg_autoHeight','false'); // boolean, Set t
 $sg_autoHeightSpeed     = get_option('sg_autoHeightSpeed','350'); // number, Set auto height animation time in milliseconds
 $sg_bigTarget           = get_option('sg_bigTarget','false'); // boolean, Set to true and the whole slide will link to next slide on click
 $sg_thumbSize           = get_option('sg_thumbSize','thumbnail'); 
+$sg_theme               = get_option('sg_theme','manual'); 
 	/**
 	* Grab attachments
 	*/
@@ -122,7 +128,10 @@ $sg_thumbSize           = get_option('sg_thumbSize','thumbnail');
 	}
 	
 
-
+/* themes? */
+    switch ($sg_theme){
+        case 'manual':
+        
 	/**
 	* Start output
 	*/
@@ -201,7 +210,131 @@ $sg_thumbSize           = get_option('sg_thumbSize','thumbnail');
 	$output .= "	
 	<!-- End slides Gallery -->\n
 	";
-
+    break;
+    
+    case 'standard':
+        $output .= '<link rel="stylesheet" href="'.$plugin_url.'/themes/standard/css/global.css">';        
+        $output .= '<!-- Begin Slides Gallery -->            
+            <div id="slide-gall-wrap">
+                <div id="example">
+                        <div id="slides" class="slides-gallery">
+                            <div class="'.$sg_container.'">
+        ';
+        
+        
+        /**
+        * Add images
+        */	
+			
+        foreach ( $attachments as $id => $attachment ) {
+            $image = wp_get_attachment_image_src($id, "large");
+            $themeta = $attachment->post_title;            
+            $output .= '<a href="#" title="'.$themeta.'"><img src="'.$image[0].'" width="'.$image[1].'" height="'.$image[2].'"/></a>'. PHP_EOL;
+            //$js[] = "{url: '" . $image[0] . "', title: '".addslashes($attachment->post_title)."', caption: '".addslashes(remove_brs($attachment->post_excerpt))."', description: '".addslashes(remove_brs($attachment->post_content))."'}";
+        }
+        				
+		$output .=	'</div>';
+        $output .= '<a href="#" class="prev"><img src="'.$plugin_url.'/themes/standard/img/arrow-prev.png" width="24" height="43" alt="Arrow Prev"></a>
+                    <a href="#" class="next"><img src="'.$plugin_url.'/themes/standard/img/arrow-next.png" width="24" height="43" alt="Arrow Next"></a>
+                    ';
+		$output .=	'</div><img src="'.$plugin_url.'/themes/standard/img/example-frame.png" width="739" height="341" alt="Example Frame" id="frame" /></div></div>';
+        
+        /**
+	* Initialize
+	*/
+	$output .= '<script>
+        $(\'#slides\').slides({
+				preload: true,
+				preloadImage: \''.$plugin_url.'/themes/standard/img/loading.gif\',
+				play: 5000,
+				pause: 2500,
+				hoverPause: true
+			});
+	</script>
+	';	
+  break;
+  case 'product':
+    $output .= '<link rel="stylesheet" href="'.$plugin_url.'/themes/product/css/global.css">';        
+    $output .= '<div id="slide-gall-wrap">
+                <div id="products_example">
+                  <div id="products">
+                    <div class="'.$sg_container.'">';
+    /*-- Add images --*/				
+    foreach ( $attachments as $id => $attachment ) {
+      $image = wp_get_attachment_image_src($id, "large");
+      $themeta = $attachment->post_title;            
+      $output .= '<a href="#" title="'.$themeta.'"><img src="'.$image[0].'" width="'.$image[1].'" height="'.$image[2].'"/></a>'. PHP_EOL;    
+    }
+    $output .= '</div><!-- '.$sg_container.'-->'.PHP_EOL;
+    $output .= '<ul class="pagination">'.PHP_EOL;
+    foreach ( $attachments as $id => $attachment ) {
+      $image = wp_get_attachment_image_src($id, "thumbnail");
+      $output .= '<li><a href="#"><img src="'.$image[0].'" width="55" /></a></li>'. PHP_EOL;
+    }
+    $output .= '</ul>'.PHP_EOL;
+    $output .= '</div>'.PHP_EOL;
+    $output .= '</div>'.PHP_EOL;
+    $output .= '<script>
+                  jQuery(function(){
+                    jQuery(\'#products\').slides({
+                      preload: true,
+                      preloadImage: \''.$plugin_url.'/themes/product/img/loading.gif\',
+                      effect: \'slide, fade\',
+                      crossfade: true,
+                      slideSpeed: 200,
+                      fadeSpeed: 500,
+                      generateNextPrev: true,
+                      generatePagination: false
+                    });
+                  });
+                </script>';
+    break;
+    case 'images_with_titles':
+      $output .= '<link rel="stylesheet" href="'.$plugin_url.'/themes/images-with-titles/css/global.css">';
+      $output .= '<div id="slide-gall-wrap">
+                  <div id="example">
+                    <div id="slides">
+                      <div class="slides_container">';
+      /*-- Add images --*/				
+      foreach ( $attachments as $id => $attachment ) {
+        $image = wp_get_attachment_image_src($id, "large");
+        $themeta = $attachment->post_title;
+        $output .= '<div><a href="#" title="'.$themeta.'"><img src="'.$image[0].'" width="'.$image[1].'" height="'.$image[2].'"/></a><div class="caption" style="bottom:0"><p>'.$themeta.'</p></div></div>';
+      }
+      $output .= '</div>
+                <a href="#" class="prev"><img src="'.$plugin_url.'/themes/images-with-titles/img/arrow-prev.png" width="24" height="43" alt="Arrow Prev"></a>
+                <a href="#" class="next"><img src="'.$plugin_url.'/themes/images-with-titles/img/arrow-next.png" width="24" height="43" alt="Arrow Next"></a>
+                </div>
+                <img src="'.$plugin_url.'/themes/images-with-titles/img/example-frame.png" width="739" height="341" alt="Example Frame" id="frame" />
+                  </div>
+                  </div>';
+      $output .= '<script>
+                  jQuery(function(){
+                    jQuery(\'#slides\').slides({
+                      preload: true,
+                      preloadImage: \''.$plugin_url.'/themes/images-with-titles/img/loading.gif\',
+                      play: 5000,
+                      pause: 2500,
+                      hoverPause: true,
+                      animationStart: function(){
+                        jQuery(\'.caption\').animate({
+                          bottom:-35
+                        },100);
+                      },
+                      animationComplete: function(current){
+                        jQuery(\'.caption\').animate({
+                          bottom:0
+                        },200);
+                        if (window.console && console.log) {
+                          // example return of current slide number
+                          console.log(current);
+                        };
+                      }
+                    });
+                  });
+                </script>';
+      break;
+    } // .switch
 	return $output;
 
 }
@@ -219,6 +352,7 @@ $sg_thumbSize           = get_option('sg_thumbSize','thumbnail');
 $sg_plugin_name = __("Slides Gallery", 'slides-gallery-jquery');
 $sg_plugin_filename = basename(__FILE__); //"slides-gallery-jquery.php";
 
+add_option('sg_theme', 'manual', '','yes'); // boolean, Set true to preload images in an image based slideshow		
 add_option('sg_preload', 'false', '','yes'); // boolean, Set true to preload images in an image based slideshow		
 add_option('sg_container', 'slides_container', '', 'yes'); // string, Class name for slides container. Default is "slides_container"
 add_option('sg_generateNextPrev', 'false', '', 'yes'); // boolean, Auto generate next/prev buttons
@@ -264,6 +398,10 @@ function sg_options_page() {
 	if (isset($_POST['info_update'])) {
 			
 		// Update options
+        
+        $sg_theme = $_POST["sg_theme"];
+		update_option("sg_theme", $sg_theme);
+        
 		$sg_preload = $_POST["sg_preload"];
 		update_option("sg_preload", $sg_preload);
         
@@ -349,7 +487,18 @@ function sg_options_page() {
 				<form method="post" action="options-general.php?page=<?php global $sg_plugin_filename; echo $sg_plugin_filename; ?>">
 			
 				<h2><?php global $sg_plugin_name; printf(__('%s Settings', 'slides-gallery-jquery'), $sg_plugin_name); ?></h2>
-	                                                          
+                
+                <h3><?php _e("Theme", 'slides-gallery-jquery'); ?></h3>
+                    <select name="sg_theme" id="sg_theme">
+                        <option value="images_with_titles" <?php echo (get_option('sg_theme') == 'images_with_titles') ? 'selected="selected"' : '';  ?>>Images with Titles</option>
+                        <option value="product" <?php echo (get_option('sg_theme') == 'product') ? 'selected="selected"' : '';  ?>>Product</option>
+                        <option value="standard" <?php echo (get_option('sg_theme') == 'standard') ? 'selected="selected"' : '';  ?>>Standard</option>                        
+                        <option value="manual" <?php echo (get_option('sg_theme') == 'manual') ? 'selected="selected"' : '';  ?>>Manual</option>                        
+                    </select>
+					<br />
+					
+					<p class="setting-description"><?php _e('Choose a predefined theme, or manual. Themes override all other settings.', 'slides-gallery-jquery') ?></p>                
+                    <fieldset id="sg_manual_options" style="display:none;">                                          
                     <h3><?php _e("Preload", 'slides-gallery-jquery'); ?></h3>
 					<label>
 					<?php
@@ -682,7 +831,7 @@ function sg_options_page() {
 					
 					<p class="setting-description"><?php _e('string - The wordpress thumbnail size you\'d like to use. Possible values include thumbnail, medium, large, or any custom thumbs your theme has added.', 'slides-gallery-jquery') ?></p>
                                        
-		
+                    </fieldset>
 					<p class="submit">
 						<?php if ( function_exists('settings_fields') ) settings_fields('sg_settings'); ?>
 						<input type='submit' name='info_update' value='<?php _e('Save Changes', 'slides-gallery-jquery'); ?>' />
@@ -694,6 +843,24 @@ function sg_options_page() {
 			</div><?php //.options ?>
 			
 		</div>
+
+        <script>
+            jQuery(document).ready(function(){
+                jQuery('#sg_theme').change(function(){
+                    sgHideOptions();
+                });
+                sgHideOptions();
+            });
+            
+            function sgHideOptions(){
+                if(jQuery('#sg_theme').val() == 'manual'){
+                    jQuery('#sg_manual_options').slideDown();
+                }else{
+                    jQuery('#sg_manual_options').slideUp();
+                }
+            }
+            
+        </script>
 
 <?php
 }
