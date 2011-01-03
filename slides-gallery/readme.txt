@@ -25,12 +25,12 @@ This plugin tweaks the gallery tag ([gallery]) in Wordpress by replacing it with
 == F.A.Q. ==
 
 = How do I change the layout =
-Most of the design, you have to do using CSS. Fortunately there are lots of classes to hook into.
+You can choose one of the predefined themes, and edit the layout yourself in the CSS folder for the respective theme. 
+Alternately, you can choose "Manual", set all of the options yourself, and edit the CSS in your main CSS files.
 
 = How do I change the image and thumbnail sizes =
-Carousel Gallery uses the Wordpress Media settings for this (Settings -> Media).
-
-Since version 1.5, you can also add the width/height of thumbnails in the Carousel Gallery options page. These are, however, scaled down using CSS, and could suffer in quality.
+Slides Gallery uses the Wordpress Media settings for this (Settings -> Media).
+You can control which image size is used in the settings page for the plugin.
 
 == Screenshots ==
 
