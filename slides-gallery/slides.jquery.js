@@ -2,8 +2,8 @@
 * Slides, A Slideshow Plugin for jQuery
 * Intructions: http://slidesjs.com
 * By: Nathan Searles, http://nathansearles.com
-* Version: 1.0.8
-* Updated: January 2nd, 2011
+* Version: 1.1.4
+* Updated: February 25th, 2011
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,15 +17,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
 (function($){
 	$.fn.slides = function( option ) {
-
 		// override defaults with specified option
 		option = $.extend( {}, $.fn.slides.option, option );
 
 		return this.each(function(){
-			
 			// wrap slides in control container, make sure slides are block level
 			$('.' + option.container, $(this)).children().wrapAll('<div class="slides_control"/>');
 			
@@ -37,240 +34,14 @@
 				start = option.start - 1,
 				effect = option.effect.indexOf(',') < 0 ? option.effect : option.effect.replace(' ', '').split(',')[0],
 				paginationEffect = option.effect.indexOf(',') < 0 ? effect : option.effect.replace(' ', '').split(',')[1],
-				next = 0, prev = 0, number = 0, current = 0, loaded, active, clicked, position, direction;	
-				
-			// 2 or more slides required
-			if (total < 2) {
-				return;
-			}
-			
-			// error corection for start slide
-			if (start < 0) {
-				start = 0;
-			};
-			
-			if (start > total) {
-				start = total - 1;
-			};
-					
-			// change current based on start option number
-			if (option.start) {
-				current = start;
-			};
-			
-			// randomizes slide order
-			if (option.randomize) {
-				control.randomize();
-			}
-			
-			// make sure overflow is hidden
-			$('.' + option.container, elem).css({
-				overflow: 'hidden',
-				// fix for ie
-				position: 'relative'
-			});
-			
-			control.css({
-				position: 'relative',
-				// size of control 3 x slide width
-				width: (width * 3),
-				// set height to slide height
-				height: height,
-				// center control to slide
-				left: -width
-			});
-			
-			// set css for slides	
-			control.children().css({
-				position: 'absolute',
-				top: 0, 
-				left: width,
-				zIndex: 0,
-				display: 'none'
-			 });
-			
-			// if autoHeight true, get and set height of first slide
-			if (option.autoHeight) {
-				control.animate({
-					height: control.children(':eq('+ start +')').outerHeight()
-				},option.autoHeightSpeed);
-			}
-			
-			// checks if image is loaded
-			if (option.preload && control.children()[0].tagName=='IMG') {
-				// adds preload image
-				elem.css({
-					background: 'url(' + option.preloadImage + ') no-repeat 50% 50%'
-				});
-				
-				// gets image src, with cache buster
-				var img = $('img:eq(' + start + ')', elem).attr('src') + '?' + (new Date()).getTime();
-				
-				// checks if image is loaded
-				$('img:eq(' + start + ')', elem).attr('src', img).load(function() {
-					// once image is fully loaded, fade in
-					$(this).fadeIn(option.fadeSpeed,function(){
-						$(this).css({
-							zIndex: 5
-						});
-						// removes preload image
-						elem.css({
-							background: ''
-						});
-						// let the script know everything is loaded
-						loaded = true;
-					});
-				});
-			} else {
-				// if no preloader fade in start slide
-				control.children(':eq(' + start + ')').fadeIn(option.fadeSpeed,function(){
-					// let the script know everything is loaded
-					loaded = true;
-				});
-			}
-			
-			// click slide for next
-			if (option.bigTarget) {
-				// set cursor to pointer
-				control.children().css({
-					cursor: 'pointer'
-				});
-				// click handler
-				control.children().click(function(){
-					// animate to next on slide click
-					animate('next', effect);
-					return false;
-				});									
-			}
-			
-			// pause on mouseover
-			if (option.hoverPause && option.play) {
-				control.children().bind('mouseover',function(){
-					// on mouse over stop
-					stop();
-				});
-				control.children().bind('mouseleave',function(){
-					// on mouse leave start pause timeout
-					pause();
-				});
-			}
-			
-			// generate next/prev buttons
-			if (option.generateNextPrev) {
-				$('.' + option.container, elem).after('<a href="#" class="'+ option.prev +'">Prev</a>');
-				$('.' + option.prev, elem).after('<a href="#" class="'+ option.next +'">Next</a>');
-			}
-			
-			// next button
-			$('.' + option.next ,elem).click(function(e){
-				e.preventDefault();
-				if (option.play) {
-					pause();
-				};
-				animate('next', effect);
-			});
-			
-			// previous button
-			$('.' + option.prev, elem).click(function(e){
-				e.preventDefault();
-				if (option.play) {
-					 pause();
-				};
-				animate('prev', effect);
-			});
-			
-			// generate pagination
-			if (option.generatePagination) {
-				// create unordered list
-				elem.append('<ul class='+ option.paginationClass +'></ul>');
-				// for each slide create a list item and link
-				control.children().each(function(){
-					$('.' + option.paginationClass, elem).append('<li><a href="#'+ number +'">'+ (number+1) +'</a></li>');
-					number++;
-				});
-			} else {
-				// if pagination exists, add href w/ value of item number to links
-				$('.' + option.paginationClass + ' li a', elem).each(function(){
-					$(this).attr('href', '#' + number);
-					number++;
-				});
-			}
-			
-			// add current class to start slide pagination
-			$('.' + option.paginationClass + ' li:eq('+ start +')', elem).addClass('current');
-			
-			// click handling 
-			$('.' + option.paginationClass + ' li a', elem ).click(function(){
-				// pause slideshow
-				if (option.play) {
-					 pause();
-				};
-				// get clicked, pass to animate function					
-				clicked = $(this).attr('href').match('[^#/]+$');
-				// if current slide equals clicked, don't do anything
-				if (current != clicked) {
-					animate('pagination', paginationEffect, clicked);
-				}
-				return false;
-			});
-			
-			// click handling 
-			$('a.link', elem).click(function(){
-				// pause slideshow
-				if (option.play) {
-					 pause();
-				};
-				// get clicked, pass to animate function					
-				clicked = $(this).attr('href').match('[^#/]+$') - 1;
-				// if current slide equals clicked, don't do anything
-				if (current != clicked) {
-					animate('pagination', paginationEffect, clicked);
-				}
-				return false;
-			});
-		
-			if (option.play) {
-				// set interval
-				playInterval = setInterval(function() {
-					animate('next', effect);
-				}, option.play);
-				// store interval id
-				elem.data('interval',playInterval);
-			};
-				
-			function stop() {
-				// clear interval from stored id
-				clearInterval(elem.data('interval'));
-			};
-
-			function pause() {
-				if (option.pause) {
-					// clear timeout and interval
-					clearTimeout(elem.data('pause'));
-					clearInterval(elem.data('interval'));
-					// pause slide show for option.pause amount
-					pauseTimeout = setTimeout(function() {
-						// clear pause timeout
-						clearTimeout(elem.data('pause'));
-						// start play interval after pause
-						playInterval = setInterval(	function(){
-							animate("next", effect);
-						},option.play);
-						// store play interval
-						elem.data('interval',playInterval);
-					},option.pause);
-					// store pause interval
-					elem.data('pause',pauseTimeout);
-				} else {
-					// if no pause, just stop
-					stop();
-				}
-			};
+				next = 0, prev = 0, number = 0, current = 0, loaded, active, clicked, position, direction, imageParent, pauseTimeout, playInterval;
 			
 			// animate slides
 			function animate(direction, effect, clicked) {
 				if (!active && loaded) {
 					active = true;
+					// start of animation
+					option.animationStart(current + 1);
 					switch(direction) {
 						case 'next':
 							// change current slide to previous
@@ -318,34 +89,52 @@
 							current = next;
 						break;
 					}
-					
+
 					// fade animation
 					if (effect === 'fade') {
-						option.animationStart();
 						// fade animation with crossfade
 						if (option.crossfade) {
 							// put hidden next above current
 							control.children(':eq('+ next +')', elem).css({
 								zIndex: 10
 							// fade in next
-							}).fadeIn(option.fadeSpeed, function(){
-								// hide previous
-								control.children(':eq('+ prev +')', elem).css({
-									display: 'none',
-									zIndex: 0
-								});
-								// reset z index
-								$(this).css({
-									zIndex: 0
-								});
-								// end of animation
-								option.animationComplete(next + 1);
-								active = false;
+							}).fadeIn(option.fadeSpeed, option.fadeEasing, function(){
+								if (option.autoHeight) {
+									// animate container to height of next
+									control.animate({
+										height: control.children(':eq('+ next +')', elem).outerHeight()
+									}, option.autoHeightSpeed, function(){
+										// hide previous
+										control.children(':eq('+ prev +')', elem).css({
+											display: 'none',
+											zIndex: 0
+										});								
+										// reset z index
+										control.children(':eq('+ next +')', elem).css({
+											zIndex: 0
+										});									
+										// end of animation
+										option.animationComplete(next + 1);
+										active = false;
+									});
+								} else {
+									// hide previous
+									control.children(':eq('+ prev +')', elem).css({
+										display: 'none',
+										zIndex: 0
+									});									
+									// reset zindex
+									control.children(':eq('+ next +')', elem).css({
+										zIndex: 0
+									});									
+									// end of animation
+									option.animationComplete(next + 1);
+									active = false;
+								}
 							});
 						} else {
-							option.animationStart();
 							// fade animation with no crossfade
-							control.children(':eq('+ prev +')', elem).fadeOut(option.fadeSpeed,function(){
+							control.children(':eq('+ prev +')', elem).fadeOut(option.fadeSpeed,  option.fadeEasing, function(){
 								// animate to new height
 								if (option.autoHeight) {
 									control.animate({
@@ -354,11 +143,11 @@
 									}, option.autoHeightSpeed,
 									// fade in next slide
 									function(){
-										control.children(':eq('+ next +')', elem).fadeIn(option.fadeSpeed);
+										control.children(':eq('+ next +')', elem).fadeIn(option.fadeSpeed, option.fadeEasing);
 									});
 								} else {
 								// if fixed height
-									control.children(':eq('+ next +')', elem).fadeIn(option.fadeSpeed,function(){
+									control.children(':eq('+ next +')', elem).fadeIn(option.fadeSpeed, option.fadeEasing, function(){
 										// fix font rendering in ie, lame
 										if($.browser.msie) {
 											$(this).get(0).style.removeAttribute('filter');
@@ -379,11 +168,10 @@
 						});
 						// animate to new height
 						if (option.autoHeight) {
-							option.animationStart();
 							control.animate({
 								left: direction,
 								height: control.children(':eq('+ next +')').outerHeight()
-							},option.slideSpeed,function(){
+							},option.slideSpeed, option.slideEasing, function(){
 								control.css({
 									left: -width
 								});
@@ -403,11 +191,10 @@
 							});
 							// if fixed height
 							} else {
-								option.animationStart();
 								// animate control
 								control.animate({
 									left: direction
-								},option.slideSpeed,function(){
+								},option.slideSpeed, option.slideEasing, function(){
 									// after animation reset control position
 									control.css({
 										left: -width
@@ -437,7 +224,253 @@
 						$('.' + option.paginationClass + ' li:eq('+ next +')', elem).addClass('current');
 					}
 				}
-			}; // end animate function
+			} // end animate function
+			
+			function stop() {
+				// clear interval from stored id
+				clearInterval(elem.data('interval'));
+			}
+
+			function pause() {
+				if (option.pause) {
+					// clear timeout and interval
+					clearTimeout(elem.data('pause'));
+					clearInterval(elem.data('interval'));
+					// pause slide show for option.pause amount
+					pauseTimeout = setTimeout(function() {
+						// clear pause timeout
+						clearTimeout(elem.data('pause'));
+						// start play interval after pause
+						playInterval = setInterval(	function(){
+							animate("next", effect);
+						},option.play);
+						// store play interval
+						elem.data('interval',playInterval);
+					},option.pause);
+					// store pause interval
+					elem.data('pause',pauseTimeout);
+				} else {
+					// if no pause, just stop
+					stop();
+				}
+			}
+				
+			// 2 or more slides required
+			if (total < 2) {
+				return;
+			}
+			
+			// error corection for start slide
+			if (start < 0) {
+				start = 0;
+			}
+			
+			if (start > total) {
+				start = total - 1;
+			}
+					
+			// change current based on start option number
+			if (option.start) {
+				current = start;
+			}
+			
+			// randomizes slide order
+			if (option.randomize) {
+				control.randomize();
+			}
+			
+			// make sure overflow is hidden, width is set
+			$('.' + option.container, elem).css({
+				overflow: 'hidden',
+				// fix for ie
+				position: 'relative'
+			});
+			
+			// set css for slides
+			control.children().css({
+				position: 'absolute',
+				top: 0, 
+				left: control.children().outerWidth(),
+				zIndex: 0,
+				display: 'none'
+			 });
+			
+			// set css for control div
+			control.css({
+				position: 'relative',
+				// size of control 3 x slide width
+				width: (width * 3),
+				// set height to slide height
+				height: height,
+				// center control to slide
+				left: -width
+			});
+			
+			// show slides
+			$('.' + option.container, elem).css({
+				display: 'block'
+			});
+
+			// if autoHeight true, get and set height of first slide
+			if (option.autoHeight) {
+				control.children().css({
+					height: 'auto'
+				});
+				control.animate({
+					height: control.children(':eq('+ start +')').outerHeight()
+				},option.autoHeightSpeed);
+			}
+			
+			// checks if image is loaded
+			if (option.preload && control.find('img').length) {
+				// adds preload image
+				$('.' + option.container, elem).css({
+					background: 'url(' + option.preloadImage + ') no-repeat 50% 50%'
+				});
+				
+				// gets image src, with cache buster
+				var img = control.find('img:eq(' + start + ')').attr('src') + '?' + (new Date()).getTime();
+				
+				// check if the image has a parent
+				if ($('img', elem).parent().attr('class') != 'slides_control') {
+					// If image has parent, get tag name
+					imageParent = control.children(':eq(0)')[0].tagName.toLowerCase();
+				} else {
+					// Image doesn't have parent, use image tag name
+					imageParent = control.find('img:eq(' + start + ')');
+				}
+
+				// checks if image is loaded
+				control.find('img:eq(' + start + ')').attr('src', img).load(function() {
+					// once image is fully loaded, fade in
+					control.find(imageParent + ':eq(' + start + ')').fadeIn(option.fadeSpeed, option.fadeEasing, function(){
+						$(this).css({
+							zIndex: 5
+						});
+						// removes preload image
+						$('.' + option.container, elem).css({
+							background: ''
+						});
+						// let the script know everything is loaded
+						loaded = true;
+					});
+				});
+			} else {
+				// if no preloader fade in start slide
+				control.children(':eq(' + start + ')').fadeIn(option.fadeSpeed, option.fadeEasing, function(){
+					// let the script know everything is loaded
+					loaded = true;
+				});
+			}
+			
+			// click slide for next
+			if (option.bigTarget) {
+				// set cursor to pointer
+				control.children().css({
+					cursor: 'pointer'
+				});
+				// click handler
+				control.children().click(function(){
+					// animate to next on slide click
+					animate('next', effect);
+					return false;
+				});									
+			}
+			
+			// pause on mouseover
+			if (option.hoverPause && option.play) {
+				control.bind('mouseover',function(){
+					// on mouse over stop
+					stop();
+				});
+				control.bind('mouseleave',function(){
+					// on mouse leave start pause timeout
+					pause();
+				});
+			}
+			
+			// generate next/prev buttons
+			if (option.generateNextPrev) {
+				$('.' + option.container, elem).after('<a href="#" class="'+ option.prev +'">Prev</a>');
+				$('.' + option.prev, elem).after('<a href="#" class="'+ option.next +'">Next</a>');
+			}
+			
+			// next button
+			$('.' + option.next ,elem).click(function(e){
+				e.preventDefault();
+				if (option.play) {
+					pause();
+				}
+				animate('next', effect);
+			});
+			
+			// previous button
+			$('.' + option.prev, elem).click(function(e){
+				e.preventDefault();
+				if (option.play) {
+					 pause();
+				}
+				animate('prev', effect);
+			});
+			
+			// generate pagination
+			if (option.generatePagination) {
+				// create unordered list
+				elem.append('<ul class='+ option.paginationClass +'></ul>');
+				// for each slide create a list item and link
+				control.children().each(function(){
+					$('.' + option.paginationClass, elem).append('<li><a href="#'+ number +'">'+ (number+1) +'</a></li>');
+					number++;
+				});
+			} else {
+				// if pagination exists, add href w/ value of item number to links
+				$('.' + option.paginationClass + ' li a', elem).each(function(){
+					$(this).attr('href', '#' + number);
+					number++;
+				});
+			}
+			
+			// add current class to start slide pagination
+			$('.' + option.paginationClass + ' li:eq('+ start +')', elem).addClass('current');
+			
+			// click handling 
+			$('.' + option.paginationClass + ' li a', elem ).click(function(){
+				// pause slideshow
+				if (option.play) {
+					 pause();
+				}
+				// get clicked, pass to animate function					
+				clicked = $(this).attr('href').match('[^#/]+$');
+				// if current slide equals clicked, don't do anything
+				if (current != clicked) {
+					animate('pagination', paginationEffect, clicked);
+				}
+				return false;
+			});
+			
+			// click handling 
+			$('a.link', elem).click(function(){
+				// pause slideshow
+				if (option.play) {
+					 pause();
+				}
+				// get clicked, pass to animate function					
+				clicked = $(this).attr('href').match('[^#/]+$') - 1;
+				// if current slide equals clicked, don't do anything
+				if (current != clicked) {
+					animate('pagination', paginationEffect, clicked);
+				}
+				return false;
+			});
+		
+			if (option.play) {
+				// set interval
+				playInterval = setInterval(function() {
+					animate('next', effect);
+				}, option.play);
+				// store interval id
+				elem.data('interval',playInterval);
+			}
 		});
 	};
 	
@@ -453,7 +486,9 @@
 		generatePagination: true, // boolean, Auto generate pagination
 		paginationClass: 'pagination', // string, Class name for pagination
 		fadeSpeed: 350, // number, Set the speed of the fading animation in milliseconds
+		fadeEasing: '', // string, must load jQuery's easing plugin before http://gsgd.co.uk/sandbox/jquery/easing/
 		slideSpeed: 350, // number, Set the speed of the sliding animation in milliseconds
+		slideEasing: '', // string, must load jQuery's easing plugin before http://gsgd.co.uk/sandbox/jquery/easing/
 		start: 1, // number, Set the speed of the sliding animation in milliseconds
 		effect: 'slide', // string, '[next/prev], [pagination]', e.g. 'slide, fade' or simply 'fade' for both
 		crossfade: false, // boolean, Crossfade images in a image based slideshow
