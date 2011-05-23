@@ -62,12 +62,12 @@ function remove_brs($string) {
 	return $new_string;
 }
 
-function slides_gallery_jquery($output, $attr) {
-    
-    if ( function_exists('plugin_url') )
-		$plugin_url = plugin_url();
-	else
-		$plugin_url = get_option('siteurl') . '/wp-content/plugins/' . plugin_basename(dirname(__FILE__));
+function slides_gallery_jquery($output, $attr) {    
+    if ( function_exists('plugin_url') ){
+		  $plugin_url = plugin_url();
+	  }else{
+		  $plugin_url = get_option('siteurl') . '/wp-content/plugins/' . plugin_basename(dirname(__FILE__));
+	  }
     
     /* load options */
 $sg_preload             = get_option('sg_preload', 'false'); // boolean, Set true to preload images in an image based slideshow		
@@ -92,6 +92,7 @@ $sg_autoHeightSpeed     = get_option('sg_autoHeightSpeed','350'); // number, Set
 $sg_bigTarget           = get_option('sg_bigTarget','false'); // boolean, Set to true and the whole slide will link to next slide on click
 $sg_thumbSize           = get_option('sg_thumbSize','thumbnail'); 
 $sg_theme               = get_option('sg_theme','manual'); 
+	
 	/**
 	* Grab attachments
 	*/
@@ -112,18 +113,41 @@ $sg_theme               = get_option('sg_theme','manual');
 		'captiontag' => 'dd',
 		'columns'    => 3,
 		'size'       => 'thumbnail',
+		'include'    => '',
+		'exclude'    => ''		
 	), $attr));
 	
 	$id = intval($id);
-	$attachments = get_children( array('post_parent' => $id, 'post_status' => 'inherit', 'post_type' => 'attachment', 'post_mime_type' => 'image', 'order' => $order, 'orderby' => $orderby) );
 	
-	if ( empty($attachments) )
+  if( ! empty($attr['include']) ){
+    $myimages = explode(',', $attr['include']);
+    $attachments = array();
+    foreach($myimages as $k => $v){
+      $attachments[$v] = $v;
+    }
+  }else{
+	  $attachments = get_children( 
+	    array(
+	      'post_parent' => $id, 
+	      'post_status' => 'inherit', 
+	      'post_type' => 'attachment', 
+	      'post_mime_type' => 'image', 
+	      'order' => $order, 
+	      'orderby' => $orderby,
+	      'exclude' => $attr['exclude']
+	    ) 
+    );
+  }
+	
+	if ( empty($attachments) && empty($attr['include']) ){
 		return '';
+	}
 		
 	if ( is_feed() ) {
 		$output = "\n";
-		foreach ( $attachments as $id => $attachment )
+		foreach ( $attachments as $id => $attachment ){
 			$output .= wp_get_attachment_link($id, $size, true) . "\n";
+		}
 		return $output;
 	}
 	
